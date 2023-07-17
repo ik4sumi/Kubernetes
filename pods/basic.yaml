@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: basic-pod
+spec:
+  containers:
+  - name: dl-env
+    image: pytorch/pytorch:2.0.0-cuda11.7-cudnn8-devel
+    command: ["sh", "-c", "apt update && \
+      apt install -y curl && \
+      curl -fsSL https://raw.githubusercontent.com/miracleyoo/one-key-linux-setup/master/one-key-setup-for-pytorch-docker.sh -o one-key-setup-for-pytorch-docker.sh && \
+      bash one-key-setup-for-pytorch-docker.sh && \
+      sleep infinity"]
+    resources:
+      limits:
+        memory: 32Gi
+        cpu: 1
+        nvidia.com/gpu: 1
+        ephemeral-storage: 100Gi
+      requests:
+        memory: 16Gi
+        cpu: 1
+        nvidia.com/gpu: 1
+        ephemeral-storage: 100Gi
+    volumeMounts:
+    - mountPath: /tsukimi
+      name: tsukimi
+  volumes:
+    - name: tsukimi
+      persistentVolumeClaim:
+        claimName: tsukimi

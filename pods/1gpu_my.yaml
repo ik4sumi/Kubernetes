@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-pod-gpu2
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: nvidia.com/gpu.product
+            operator: In
+            values:
+            - NVIDIA-GeForce-GTX-2080-Ti
+            - NVIDIA-A100-PCIE-40GB-MIG-2g.10gb	
+            - NVIDIA-GeForce-GTX-1080-Ti
+
+  containers:
+  - name: dl-env
+    image: miracleyoo/dl-env-py310:ver4
+    command: ["sh", "-c", "sleep infinity"]
+    resources:
+      limits:
+        memory: 32Gi
+        cpu: 1
+        nvidia.com/gpu: 1
+        ephemeral-storage: 100Gi
+      requests:
+        memory: 32Gi
+        cpu: 1
+        nvidia.com/gpu: 1
+        ephemeral-storage: 100Gi
+    volumeMounts:
+    - mountPath: /tsukimi
+      name: tsukimi
+    - mountPath: /hataraku
+      name: hataraku
+    - mountPath: /dev/shm
+      name: cache-volume
+  volumes:
+    - name: tsukimi
+      persistentVolumeClaim:
+        claimName: tsukimi
+    - name: hataraku
+      persistentVolumeClaim:
+        claimName: hataraku
+    - emptyDir:
+        medium: Memory
+        sizeLimit: 1Gi
+      name: cache-volume

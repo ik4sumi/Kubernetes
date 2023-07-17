@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+var:
+  GPU_NUM: 1
+metadata:
+  # Name the deployment as mid-{GPU_NUM}gpu, using the GPU_NUM variable defined above
+  name: mid-${GPU_NUM}gpu
+  labels:
+    k8s-app: mid-${GPU_NUM}gpu
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: mid-${GPU_NUM}gpu
+  template:
+    metadata: 
+      labels:
+        k8s-app: mid-${GPU_NUM}gpu
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: nvidia.com/gpu.product
+                operator: In
+                values:
+                - NVIDIA-GeForce-GTX-2080-Ti
+                - NVIDIA-TITAN-Xp
+                - NVIDIA-A100-PCIE-40GB-MIG-2g.10gb	
+                - NVIDIA-GeForce-GTX-1080-Ti
+                - Tesla-T4
+      containers:
+      - name: mid-${GPU_NUM}gpu
+        image: pytorch/pytorch:2.0.0-cuda11.7-cudnn8-devel
+        command: ["sh", "-c", "apt update && \
+          apt install -y curl && \
+          curl -fsSL https://raw.githubusercontent.com/miracleyoo/one-key-linux-setup/master/one-key-setup-for-pytorch-docker.sh -o one-key-setup-for-pytorch-docker.sh && \
+          bash one-key-setup-for-pytorch-docker.sh && \
+          rm one-key-setup-for-pytorch-docker.sh && \
+          sleep infinity"]
+        resources:
+          limits:
+            memory: 32Gi
+            cpu: 16
+            nvidia.com/gpu: ${GPU_NUM}
+            ephemeral-storage: 100Gi
+          requests:
+            memory: 32Gi
+            cpu: 4
+            nvidia.com/gpu: ${GPU_NUM}
+            ephemeral-storage: 100Gi        
+        volumeMounts:
+        - mountPath: /tsukimi
+          name: tsukimi
+        # - mountPath: /hataraku
+        #   name: hataraku
+        - mountPath: /dev/shm
+          name: cache-volume
+      volumes:
+        - name: tsukimi
+          persistentVolumeClaim:
+            claimName: tsukimi
+        # - name: hataraku
+        #   persistentVolumeClaim:
+        #     claimName: hataraku
+        - emptyDir:
+            medium: Memory
+            sizeLimit: 1Gi
+          name: cache-volume

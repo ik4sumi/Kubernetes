@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: gpu-pod-example
+spec:
+  containers:
+  - name: gpu-container
+    image: pytorch/pytorch:2.0.0-cuda11.7-cudnn8-devel
+    command: ["sleep", "infinity"]
+    resources:
+      limits:
+        nvidia.com/gpu: 1

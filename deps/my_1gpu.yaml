@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-1gpu-dep
+  labels:
+    k8s-app: my-1gpu-dep
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: my-1gpu-dep
+  template:
+    metadata: 
+      labels:
+        k8s-app: my-1gpu-dep
+    spec:
+      containers:
+      - name: my-1gpu-dep
+        image: miracleyoo/dl-env-py310:ver4
+        command: ["sh", "-c", "sleep infinity"]
+        resources:
+          limits:
+            memory: 32Gi
+            cpu: 2
+            nvidia.com/gpu: 1
+            ephemeral-storage: 100Gi
+          requests:
+            memory: 16Gi
+            cpu: 2
+            nvidia.com/gpu: 1
+            ephemeral-storage: 100Gi        
+        volumeMounts:
+        - mountPath: /tsukimi
+          name: tsukimi
+      volumes:
+        - name: tsukimi
+          persistentVolumeClaim:
+            claimName: tsukimi
